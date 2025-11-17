@@ -137,8 +137,6 @@ input[type="file"] {
     border-radius: 10px;
     border: 1px dashed rgba(255, 255, 255, 0.12);
     background: rgba(9, 11, 18, 0.9);
-    max-height: 260px;
-    overflow: auto;
 }
 
 .list-header {
@@ -226,11 +224,11 @@ ul#fileList {
 
 .file-name {
   font-size: 12px;
-  white-space: normal;      /* 여러 줄 허용 */
-  overflow: visible;        /* 잘라내지 않기 */
-  text-overflow: clip;      /* 말줄임표 제거 */
-  max-width: none;          /* 가로 제한 없애기 (원하면 픽셀로 다시 줄 수 있음) */
-  word-break: break-all;    /* 너무 긴 영어/파일명도 줄바꿈 */
+  white-space: normal;     
+  overflow: visible;        
+  text-overflow: clip;   
+  max-width: none;        
+  word-break: break-all;   
 }
 
 .file-sub {
@@ -385,24 +383,104 @@ button {
 }
 
 .drop-zone {
-  padding: 10px;
-  border-radius: 10px;
+  height: 130px;
+  padding: 14px;
+  border-radius: 12px;
   border: 1px dashed rgba(255, 255, 255, 0.15);
-  background: rgba(9, 11, 18, 0.5);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  background: rgba(9, 11, 18, 0.55);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.drop-zone:hover {
+  border-color: rgba(79, 140, 255, 0.7);
+  box-shadow:
+    0 0 0 1px rgba(79, 140, 255, 0.35),
+    0 0 22px rgba(79, 140, 255, 0.25);
+  transform: translateY(-1px);
 }
 
 .drop-zone.drag-over {
   border-color: var(--accent);
   background: rgba(79, 140, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(79, 140, 255, 0.55),
+    0 0 28px rgba(79, 140, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.drop-zone-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;  
+  justify-content: center; 
+  gap: 8px;
+  text-align: center;   
+  pointer-events: none;  
+}
+
+.drop-zone-icon {
+  font-size: 26px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 140, 255, 0.16);
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.35);
+  animation: float-icon 1.6s ease-in-out infinite alternate;
+}
+
+.drop-zone-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .drop-zone-text {
-  font-size: 11px;
-  color: var(--text-sub);
-  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--text-main);
 }
-/* ✅ 리스트에서 '빈 페이지' 아이템 구분용 */
+
+.drop-zone-text b {
+  font-weight: 600;
+  animation: pulse-text 1.7s ease-in-out infinite alternate;
+}
+
+.drop-zone-sub {
+  font-size: 10px;
+  color: var(--text-sub);
+}
+
+@keyframes float-icon {
+  from {
+    transform: translateY(0px);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-text {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drop-zone ul {
+  margin-top: 4px;
+}
+
 .file-item.blank {
   opacity: 0.85;
   background: rgba(255, 255, 255, 0.01);
