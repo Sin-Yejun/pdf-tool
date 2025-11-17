@@ -11,7 +11,6 @@ const addBlankBtn = document.getElementById("addBlankBtn");
 const summaryBar = document.getElementById("summaryBar");
 const outputNameInput = document.getElementById("outputNameInput");
 
-
 // 파일 상태를 저장할 배열 (순서를 여기서 관리)
 let filesState = [];
 

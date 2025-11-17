@@ -43,56 +43,61 @@
             <span><span class="drag-hint">DRAG TO REORDER</span></span>
           </div>
 
-        <div id="dropZone" class="drop-zone">
-          <div class="drop-zone-content">
-            <div class="drop-zone-icon">📄</div>
-            <div class="drop-zone-text-wrap">
-              <div class="drop-zone-text">
-                여기로 PDF 파일을 <b>드래그해서 놓기</b>
-              </div>
-              <div class="drop-zone-sub">
-                또는 위의 <b>파일 선택</b> 버튼을 사용해도 됩니다.
+          <div id="dropZone" class="drop-zone">
+            <div class="drop-zone-content">
+              <div class="drop-zone-icon">📄</div>
+              <div class="drop-zone-text-wrap">
+                <div class="drop-zone-text">
+                  여기로 PDF 파일을 <b>드래그해서 놓기</b>
+                </div>
+                <div class="drop-zone-sub">
+                  또는 위의 <b>파일 선택</b> 버튼을 사용해도 됩니다.
+                </div>
               </div>
             </div>
+            <ul id="fileList"></ul>
           </div>
-          <ul id="fileList"></ul>
-        </div>
 
-        <div class="actions-row">
-          <div class="left-actions">
-            <button class="btn-ghost" id="clearBtn" type="button">
-              ✕ 리스트 비우기
-            </button>
-            <span id="fileCountText">파일 0개 선택됨</span>
-            <!-- ✅ 새 버튼: 빈 페이지 아이템 추가 -->
-            <button class="btn-ghost" id="addBlankBtn" type="button">
-              + 빈 페이지 추가
+          <div class="actions-row">
+            <div class="left-actions">
+              <button class="btn-ghost" id="clearBtn" type="button">
+                ✕ 리스트 비우기
+              </button>
+              <span id="fileCountText">파일 0개 선택됨</span>
+              <!-- ✅ 새 버튼: 빈 페이지 아이템 추가 -->
+              <button class="btn-ghost" id="addBlankBtn" type="button">
+                + 빈 페이지 추가
+              </button>
+            </div>
+            <button class="btn-primary" id="mergeBtn" type="button">
+              <span>PDF 병합하기</span>
+              <span>⫷⫸</span>
             </button>
           </div>
-          <button class="btn-primary" id="mergeBtn" type="button">
-            <span>PDF 병합하기</span>
-            <span>⫷⫸</span>
-          </button>
-        </div>
-        <div class="output-row">
-          <label for="outputNameInput" class="output-label">
-            출력 파일 이름
-          </label>
-          <input
-            id="outputNameInput"
-            type="text"
-            class="output-input"
-            placeholder=""
-          />
-          <div class="output-hint">확장자 <b>.pdf</b>는 자동으로 붙습니다.</div>
-        </div>
 
-        <div id="summaryBar" class="summary-bar">
-          현재: 파일 0개, 빈 페이지 0개, 총 0페이지
-        </div>
-        <div id="status" class="status">
-          <span class="status-dot"></span>
-          <span class="status-text">PDF 파일을 선택해 주세요.</span>
+          <div class="output-row">
+            <label for="outputNameInput" class="output-label">
+              출력 파일 이름
+            </label>
+            <input
+              id="outputNameInput"
+              type="text"
+              class="output-input"
+              placeholder=""
+            />
+            <div class="output-hint">
+              확장자 <b>.pdf</b>는 자동으로 붙습니다.
+            </div>
+          </div>
+
+          <div id="summaryBar" class="summary-bar">
+            현재: 파일 0개, 빈 페이지 0개, 총 0페이지
+          </div>
+
+          <div id="status" class="status">
+            <span class="status-dot"></span>
+            <span class="status-text">PDF 파일을 선택해 주세요.</span>
+          </div>
         </div>
       </div>
     </div>
