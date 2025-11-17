@@ -1,0 +1,418 @@
+:root {
+    --bg-color: #0f1115;
+    --card-color: #181b22;
+    --accent: #4f8cff;
+    --accent-soft: rgba(79, 140, 255, 0.15);
+    --text-main: #f5f5f5;
+    --text-sub: #a0a4b8;
+    --border-color: #252938;
+    --danger: #ff5c7a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, #20253a 0, #0b0d12 45%, #050609 100%);
+    color: var(--text-main);
+    margin: 0;
+    padding: 24px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.app {
+    width: 100%;
+    max-width: 720px;
+    background: rgba(10, 12, 20, 0.9);
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+    padding: 24px 22px 20px;
+    backdrop-filter: blur(18px);
+}
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.title-block h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pill {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--accent-soft);
+    background: rgba(10, 16, 30, 0.9);
+    color: var(--accent);
+}
+
+.title-block p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-sub);
+}
+
+.badge-me {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(79, 140, 255, 0.12);
+    color: var(--accent);
+    border: 1px solid rgba(79, 140, 255, 0.35);
+    white-space: nowrap;
+}
+
+.section {
+    background: var(--card-color);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    padding: 14px 16px 12px;
+    margin-bottom: 12px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.section-title {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.section-title span.icon {
+    font-size: 16px;
+}
+
+.hint {
+    font-size: 11px;
+    color: var(--text-sub);
+}
+
+.file-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+input[type="file"] {
+    font-size: 12px;
+    color: var(--text-sub);
+}
+
+.small-text {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin: 0;
+}
+
+.list-container {
+    margin-top: 6px;
+    border-radius: 10px;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    background: rgba(9, 11, 18, 0.9);
+    max-height: 260px;
+    overflow: auto;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px 6px;
+    font-size: 11px;
+    color: var(--text-sub);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.list-header span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+ul#fileList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 10px;
+    font-size: 12px;
+    cursor: grab;
+    user-select: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.1s ease;
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.file-item.dragging {
+    opacity: 0.7;
+    background: rgba(79, 140, 255, 0.18);
+    box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.45);
+    transform: scale(1.01);
+    cursor: grabbing;
+}
+
+.file-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.file-index {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-sub);
+    flex-shrink: 0;
+}
+
+.file-icon {
+    width: 18px;
+    height: 22px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #ff9a5c, #ff5f6d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.file-name {
+  font-size: 12px;
+  white-space: normal;      /* 여러 줄 허용 */
+  overflow: visible;        /* 잘라내지 않기 */
+  text-overflow: clip;      /* 말줄임표 제거 */
+  max-width: none;          /* 가로 제한 없애기 (원하면 픽셀로 다시 줄 수 있음) */
+  word-break: break-all;    /* 너무 긴 영어/파일명도 줄바꿈 */
+}
+
+.file-sub {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-left: 4px;
+}
+
+.file-meta {
+    font-size: 11px;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.dot-sep {
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.drag-hint {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.left-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-sub);
+}
+
+button {
+    font-family: inherit;
+}
+
+.btn-primary {
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    background: linear-gradient(135deg, #4f8cff, #7b5cff);
+    color: #fff;
+    box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    filter: brightness(0.98);
+    box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.btn-ghost {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
+    color: var(--text-sub);
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #e6e8ff;
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 11px;
+    min-height: 16px;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: pre-line;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    display: none;
+}
+
+.status.loading .status-dot {
+    display: inline-block;
+    animation: pulse 0.8s ease-in-out infinite alternate;
+}
+
+.status.error {
+    color: var(--danger);
+}
+
+@keyframes pulse {
+    from {
+    transform: scale(0.9);
+    opacity: 0.65;
+    }
+    to {
+    transform: scale(1.1);
+    opacity: 1;
+    }
+}
+
+@media (max-width: 540px) {
+    .file-name {
+    max-width: 160px;
+    }
+    .app {
+    padding: 20px 16px 16px;
+    }
+}
+
+.drop-zone {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(9, 11, 18, 0.5);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(79, 140, 255, 0.12);
+}
+
+.drop-zone-text {
+  font-size: 11px;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+}
+/* ✅ 리스트에서 '빈 페이지' 아이템 구분용 */
+.file-item.blank {
+  opacity: 0.85;
+  background: rgba(255, 255, 255, 0.01);
+  font-style: italic;
+}
+
+.file-icon.blank {
+  background: linear-gradient(135deg, #999, #555);
+}
+
+.file-name.blank {
+  color: #e0e0e0;
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>PDF 병합기 (드래그 정렬 + 다크 테마)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <div class="app-header">
+      <div class="title-block">
+        <h1>
+          PDF 병합기
+          <span class="pill">drag &amp; merge</span>
+        </h1>
+        <p>여러 PDF를 선택하고, 순서를 드래그해서 정한 뒤 하나의 파일로 병합합니다.</p>
+      </div>
+      <div class="badge-me">나만 쓰는 로컬 버전</div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="icon">📁</span>
+          파일 선택
+        </div>
+        <div class="hint">여러 개 선택 가능</div>
+      </div>
+
+      <div class="file-input-row">
+        <input id="fileInput" type="file" multiple accept="application/pdf" />
+      </div>
+      <p class="small-text">※ 파일 순서는 아래 리스트에서 <b>드래그해서 변경</b>할 수 있습니다.</p>
+
+      <div class="list-container">
+        <div class="list-header">
+          <span>선택된 파일</span>
+          <span><span class="drag-hint">DRAG TO REORDER</span></span>
+        </div>
+        <div id="dropZone" class="drop-zone">
+            <div class="drop-zone-text">
+                여기로 PDF 파일을 드래그해서 놓을 수 있어요.
+            </div>
+        </div>
+        <ul id="fileList"></ul>
+      </div>
+
+      <div class="actions-row">
+        <div class="left-actions">
+          <button class="btn-ghost" id="clearBtn" type="button">
+            ✕ 리스트 비우기
+          </button>
+          <span id="fileCountText">파일 0개 선택됨</span>
+            <!-- ✅ 새 버튼: 빈 페이지 아이템 추가 -->
+            <button class="btn-ghost" id="addBlankBtn" type="button">
+            + 빈 페이지 추가
+            </button>
+        </div>
+        <button class="btn-primary" id="mergeBtn" type="button">
+          <span>PDF 병합하기</span>
+          <span>⫷⫸</span>
+        </button>
+      </div>
+
+      <div id="status" class="status">
+        <span class="status-dot"></span>
+        <span class="status-text">PDF 파일을 선택해 주세요.</span>
+      </div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
