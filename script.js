@@ -134,9 +134,27 @@ function renderFileList() {
     main.appendChild(icon);
     main.appendChild(nameWrap);
 
+    // ✅ 개별 삭제 버튼 생성
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-btn";
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "✕";
+    deleteBtn.title = "이 항목 삭제";
+
+    // 드래그랑 안 섞이게 이벤트 막기
+    deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // 현재 index 기준으로 삭제
+        filesState.splice(index, 1);
+        renderFileList();
+        setStatus("항목을 삭제했습니다.");
+    });
+
     meta.appendChild(sizeSpan);
     meta.appendChild(dot);
     meta.appendChild(pagesHint);
+    meta.appendChild(deleteBtn);
 
     li.appendChild(main);
     li.appendChild(meta);

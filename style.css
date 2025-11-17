@@ -416,3 +416,30 @@ button {
 .file-name.blank {
   color: #e0e0e0;
 }
+
+.delete-btn {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 2px;
+  margin-left: 4px;
+  line-height: 1;
+  border-radius: 999px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ff7b94;
+}
+
+.delete-btn:active {
+  background: rgba(255, 255, 255, 0.12);
+}
