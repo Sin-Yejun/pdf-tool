@@ -206,40 +206,39 @@ function renderFileList() {
 
 // 드래그 앤 드롭 로직
 let dragSrcIndex = null;
+let dropIndex = null;
+
+const dropMarker = document.createElement("div");
+dropMarker.className = "drop-marker";
+
+function clearDropHighlights() {
+  document
+    .querySelectorAll(".file-item.drop-before, .file-item.drop-after")
+    .forEach((el) => {
+      el.classList.remove("drop-before", "drop-after");
+    });
+}
 
 function addDragHandlers(li) {
   li.addEventListener("dragstart", (e) => {
     dragSrcIndex = Number(li.dataset.index);
+    dropIndex = null;
+
     li.classList.add("dragging");
+
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", li.dataset.index);
     }
   });
 
-  li.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = "move";
-    }
-  });
-
-  li.addEventListener("drop", (e) => {
-    e.preventDefault();
-    const targetIndex = Number(li.dataset.index);
-    if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
-
-    const moved = filesState[dragSrcIndex];
-    filesState.splice(dragSrcIndex, 1);
-    filesState.splice(targetIndex, 0, moved);
-
-    dragSrcIndex = null;
-    renderFileList();
-  });
-
   li.addEventListener("dragend", () => {
     li.classList.remove("dragging");
     dragSrcIndex = null;
+    dropIndex = null;
+    if (dropMarker.parentNode) {
+      dropMarker.parentNode.removeChild(dropMarker);
+    }
   });
 }
 
@@ -300,6 +299,97 @@ dropZone.addEventListener("drop", async (e) => {
 
   // 같은 파일 다시 선택하는 상황 대비해서 인풋값 초기화
   fileInput.value = "";
+});
+
+// 리스트 전체에 대한 dragover: 마우스 위치 기준으로 dropIndex 계산
+fileListEl.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  if (dragSrcIndex == null) return;
+
+  const children = Array.from(fileListEl.querySelectorAll(".file-item"));
+  if (children.length === 0) {
+    dropIndex = 0;
+    if (!dropMarker.parentNode) {
+      fileListEl.appendChild(dropMarker);
+    }
+    return;
+  }
+
+  const y = e.clientY;
+  let newIndex = children.length; // 기본은 맨 끝
+
+  for (let i = 0; i < children.length; i++) {
+    const rect = children[i].getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    if (y < mid) {
+      newIndex = i;
+      break;
+    }
+  }
+
+  // 같은 위치라면 DOM 조작 안 함 → 떨림 방지
+  if (dropIndex === newIndex && dropMarker.parentNode) return;
+
+  dropIndex = newIndex;
+
+  // 마커를 해당 위치로 이동
+  if (dropMarker.parentNode) {
+    dropMarker.parentNode.removeChild(dropMarker);
+  }
+  if (children[newIndex]) {
+    fileListEl.insertBefore(dropMarker, children[newIndex]);
+  } else {
+    fileListEl.appendChild(dropMarker);
+  }
+});
+
+// 실제 drop 시 순서 재배열
+fileListEl.addEventListener("drop", (e) => {
+  e.preventDefault();
+  if (dragSrcIndex == null || dropIndex == null) return;
+
+  let from = dragSrcIndex;
+  let to = dropIndex;
+
+  // 같은 위치면 아무 일도 안 하기
+  if (to === from || to === from + 1) {
+    dragSrcIndex = null;
+    dropIndex = null;
+    if (dropMarker.parentNode) {
+      dropMarker.parentNode.removeChild(dropMarker);
+    }
+    return;
+  }
+
+  const moved = filesState[from];
+  filesState.splice(from, 1);
+
+  if (to > from) {
+    to -= 1; // 앞에서 하나 빠졌으니 인덱스 보정
+  }
+  filesState.splice(to, 0, moved);
+
+  dragSrcIndex = null;
+  dropIndex = null;
+  if (dropMarker.parentNode) {
+    dropMarker.parentNode.removeChild(dropMarker);
+  }
+
+  renderFileList();
+});
+
+// 리스트 영역 밖으로 나갔을 때 마커 정리
+fileListEl.addEventListener("dragleave", (e) => {
+  // 리스트 전체 영역에서 벗어났을 때만 처리
+  const rect = fileListEl.getBoundingClientRect();
+  const x = e.clientX;
+  const y = e.clientY;
+  if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+    if (dropMarker.parentNode) {
+      dropMarker.parentNode.removeChild(dropMarker);
+    }
+    dropIndex = null;
+  }
 });
 
 mergeBtn.addEventListener("click", async () => {

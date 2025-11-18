@@ -388,11 +388,8 @@ button {
   border-radius: 12px;
   border: 1px dashed rgba(255, 255, 255, 0.15);
   background: rgba(9, 11, 18, 0.55);
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.12s ease;
+  transition: border-color 0.15s ease, background 0.15s ease,
+    box-shadow 0.15s ease, transform 0.12s ease;
 }
 
 /* 파일이 없을 때: 고정 높이 + 중앙 정렬 */
@@ -584,4 +581,11 @@ button {
   background: rgba(9, 11, 18, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.06);
   color: var(--text-sub);
+}
+
+.drop-marker {
+  height: 0;
+  border-top: 2px solid var(--accent);
+  margin: 4px 0;
+  pointer-events: none;
 }
