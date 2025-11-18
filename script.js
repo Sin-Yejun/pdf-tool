@@ -630,5 +630,34 @@ mergeBtn.addEventListener("click", async () => {
   }
 });
 
+// === 테마 토글 ===
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+// 저장된 테마 불러오기
+const savedTheme = localStorage.getItem("pdfToolTheme");
+if (savedTheme === "light") {
+  document.documentElement.classList.add("light");
+  themeToggleBtn.textContent = "☀️ 라이트 모드";
+} else {
+  themeToggleBtn.textContent = "🌙 다크 모드";
+}
+
+themeToggleBtn.addEventListener("click", () => {
+  const html = document.documentElement;
+
+  if (html.classList.contains("light")) {
+    // 라이트 → 다크
+    html.classList.remove("light");
+    themeToggleBtn.textContent = "🌙 다크 모드";
+    localStorage.setItem("pdfToolTheme", "dark");
+  } else {
+    // 다크 → 라이트
+    html.classList.add("light");
+    themeToggleBtn.textContent = "☀️ 라이트 모드";
+    localStorage.setItem("pdfToolTheme", "light");
+  }
+});
+
 // 초기 상태
 setStatus("PDF 파일을 선택해 주세요.");
+
