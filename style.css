@@ -267,18 +267,36 @@ ul#fileList {
 
 .actions-row {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.top-actions {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
+}
+
+.bottom-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  margin-right: 10px;
+}
+
+.right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 10px;
 }
 
 .left-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-sub);
+  gap: 10px;
+  margin-left: 10px;
 }
 
 button {
@@ -300,6 +318,8 @@ button {
   align-items: center;
   gap: 6px;
   transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-primary:hover {
@@ -313,6 +333,21 @@ button {
   transform: translateY(0);
   filter: brightness(0.98);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.btn-ghost,
+.btn-primary {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#fileCountText {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-sub);
+  white-space: nowrap;
 }
 
 .btn-ghost {
@@ -336,7 +371,7 @@ button {
 }
 
 .status {
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 11px;
   min-height: 16px;
   color: var(--text-sub);
@@ -533,7 +568,7 @@ button {
 }
 
 .output-row {
-  margin-top: 10px;
+  margin-top: 12px;
   margin-bottom: 4px;
   display: flex;
   flex-wrap: wrap;
@@ -573,7 +608,7 @@ button {
 }
 
 .summary-bar {
-  margin-top: 6px;
+  margin-top: 12px;
   margin-bottom: 4px;
   font-size: 11px;
   padding: 6px 10px;
@@ -604,6 +639,25 @@ button {
 }
 
 .reverse-pages-btn:hover {
+  background: rgba(79, 140, 255, 0.18);
+  color: #e6ecff;
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.4);
+}
+
+.page-range-btn {
+  border: none;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-sub);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  margin-left: 6px;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.page-range-btn:hover {
   background: rgba(79, 140, 255, 0.18);
   color: #e6ecff;
   box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.4);

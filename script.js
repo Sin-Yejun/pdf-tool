@@ -11,11 +11,33 @@ const addBlankBtn = document.getElementById("addBlankBtn");
 const summaryBar = document.getElementById("summaryBar");
 const outputNameInput = document.getElementById("outputNameInput");
 const reverseOrderBtn = document.getElementById("reverseOrderBtn");
+const previewBtn = document.getElementById("previewBtn");
 
 // kind: 'file' | 'blank'
-// 파일: { kind: 'file', file: File, pageCount: number|null, reversePages: boolean }
+// 파일: { kind: 'file', file: File, pageCount: number|null, reversePages: boolean, pageRange?: { raw: string, indices: number[] } }
 // 빈페이지: { kind: 'blank' }
 let filesState = [];
+
+previewBtn.addEventListener("click", async () => {
+  if (filesState.length === 0) {
+    alert("미리보기 할 PDF가 없습니다.");
+    return;
+  }
+
+  try {
+    setStatus("미리보기용 PDF를 생성 중입니다...", { loading: true });
+
+    const blob = await buildMergedPdfBlob();
+    const url = URL.createObjectURL(blob);
+
+    window.open(url, "_blank"); // 브라우저 기본 PDF 뷰어로 새 탭 열기
+
+    setStatus("미리보기가 새 탭에서 열렸습니다.");
+  } catch (err) {
+    console.error(err);
+    setStatus("미리보기 생성 중 오류가 발생했습니다.", { error: true });
+  }
+});
 
 reverseOrderBtn.addEventListener("click", () => {
   if (filesState.length === 0) {
@@ -55,13 +77,65 @@ function updateSummary() {
   let totalPages = 0;
   for (const item of filesState) {
     if (item.kind === "file") {
-      totalPages += item.pageCount || 0;
+      if (item.pageRange && item.pageRange.indices) {
+        totalPages += item.pageRange.indices.length;
+      } else {
+        totalPages += item.pageCount || 0;
+      }
     } else if (item.kind === "blank") {
-      totalPages += 1; // 빈 페이지는 1장씩
+      totalPages += 1;
+    }
+  }
+  summaryBar.textContent = `현재: 파일 ${fileCount}개, 빈 페이지 ${blankCount}개, 총 ${totalPages}페이지`;
+}
+
+async function buildMergedPdfBlob() {
+  const mergedPdf = await PDFDocument.create();
+  const DEFAULT_PAGE_SIZE = [595.28, 841.89];
+
+  for (const item of filesState) {
+    if (item.kind === "file") {
+      const file = item.file;
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await PDFDocument.load(arrayBuffer);
+
+      const allIndices = pdf.getPageIndices();
+
+      let selectedIndices;
+      if (item.pageRange && Array.isArray(item.pageRange.indices)) {
+        selectedIndices = item.pageRange.indices.filter((idx) =>
+          allIndices.includes(idx)
+        );
+      } else {
+        selectedIndices = allIndices;
+      }
+
+      if (item.reversePages) {
+        selectedIndices = [...selectedIndices].reverse();
+      }
+
+      if (selectedIndices.length === 0) continue;
+
+      const copiedPages = await mergedPdf.copyPages(pdf, selectedIndices);
+      copiedPages.forEach((page) => mergedPdf.addPage(page));
+    } else if (item.kind === "blank") {
+      let width = DEFAULT_PAGE_SIZE[0];
+      let height = DEFAULT_PAGE_SIZE[1];
+
+      const pageCount = mergedPdf.getPageCount();
+      if (pageCount > 0) {
+        const lastPage = mergedPdf.getPage(pageCount - 1);
+        const size = lastPage.getSize();
+        width = size.width;
+        height = size.height;
+      }
+
+      mergedPdf.addPage([width, height]);
     }
   }
 
-  summaryBar.textContent = `현재: 파일 ${fileCount}개, 빈 페이지 ${blankCount}개, 총 ${totalPages}페이지`;
+  const mergedPdfBytes = await mergedPdf.save();
+  return new Blob([mergedPdfBytes], { type: "application/pdf" });
 }
 
 // ✅ PDF 페이지 수 계산
@@ -76,6 +150,55 @@ async function getPdfPageCount(file) {
   }
 }
 
+// "1-3,5,7-9" -> [0,1,2,4,6,7,8] (0-based)
+function parsePageRangeInput(input, pageCount) {
+  if (!input) return null;
+
+  const cleaned = input.replace(/\s+/g, "");
+  if (!cleaned) return null;
+
+  const parts = cleaned.split(",");
+  const indices = new Set();
+
+  for (const part of parts) {
+    if (!part) continue;
+    if (part.includes("-")) {
+      const [startStr, endStr] = part.split("-");
+      const start = parseInt(startStr, 10);
+      const end = parseInt(endStr, 10);
+      if (Number.isNaN(start) || Number.isNaN(end)) {
+        return null;
+      }
+      const s = Math.min(start, end);
+      const e = Math.max(start, end);
+      for (let p = s; p <= e; p++) {
+        const idx = p - 1; // 1-based -> 0-based
+        if (idx >= 0 && idx < pageCount) {
+          indices.add(idx);
+        }
+      }
+    } else {
+      const p = parseInt(part, 10);
+      if (Number.isNaN(p)) {
+        return null;
+      }
+      const idx = p - 1;
+      if (idx >= 0 && idx < pageCount) {
+        indices.add(idx);
+      }
+    }
+  }
+
+  if (indices.size === 0) {
+    return null;
+  }
+
+  return {
+    raw: cleaned,
+    indices: Array.from(indices).sort((a, b) => a - b),
+  };
+}
+
 // ✅ 파일 배열 추가/교체 공통 함수 (이제 kind: 'file'로 저장)
 async function addFilesToState(newFiles, { append } = { append: true }) {
   const pdfFiles = Array.from(newFiles).filter(
@@ -87,7 +210,13 @@ async function addFilesToState(newFiles, { append } = { append: true }) {
   const entries = [];
   for (const file of pdfFiles) {
     const pageCount = await getPdfPageCount(file);
-    entries.push({ kind: "file", file, pageCount, reversePages: false });
+    entries.push({
+      kind: "file",
+      file,
+      pageCount,
+      reversePages: false,
+      pageRange: null,
+    });
   }
 
   if (append) {
@@ -158,7 +287,6 @@ function renderFileList() {
     dot.className = "dot-sep";
     const pagesHint = document.createElement("span");
 
-    // ✅ 파일 vs 빈 페이지 분기
     if (item.kind === "file") {
       const file = item.file;
 
@@ -168,6 +296,58 @@ function renderFileList() {
         item.pageCount != null ? `${item.pageCount} p` : "페이지 수 알 수 없음";
 
       icon.textContent = "PDF";
+
+      // ✅ 페이지 범위 버튼
+      const rangeBtn = document.createElement("button");
+      rangeBtn.type = "button";
+      rangeBtn.className = "page-range-btn";
+      rangeBtn.textContent = item.pageRange
+        ? `범위: ${item.pageRange.raw}`
+        : "범위: 전체";
+
+      rangeBtn.title = "병합에 포함할 페이지 범위를 설정합니다. 예: 1-3,5,7-9";
+
+      rangeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (item.pageCount == null) {
+          alert("페이지 수 정보를 알 수 없어 범위를 설정할 수 없습니다.");
+          return;
+        }
+
+        const current = item.pageRange ? item.pageRange.raw : "";
+        const input = window.prompt(
+          `포함할 페이지를 입력하세요 (1~${item.pageCount} 범위)\n예: 1-3,5,7-9\n빈 값 또는 취소: 전체 페이지 사용`,
+          current
+        );
+
+        if (input === null) {
+          // 취소: 아무 것도 변경하지 않음
+          return;
+        }
+
+        const trimmed = input.trim();
+        if (!trimmed) {
+          // 빈 값이면 전체 페이지 사용
+          item.pageRange = null;
+          renderFileList();
+          setStatus("페이지 범위를 초기화했습니다. 전체 페이지가 포함됩니다.");
+          return;
+        }
+
+        const parsed = parsePageRangeInput(trimmed, item.pageCount);
+        if (!parsed) {
+          alert("입력 형식이 잘못되었습니다. 예: 1-3,5,7-9");
+          return;
+        }
+
+        item.pageRange = parsed;
+        renderFileList();
+        setStatus(`페이지 범위를 "${parsed.raw}"로 설정했습니다.`);
+      });
+
+      // ✅ 기존 reverse 버튼
       const reverseBtn = document.createElement("button");
       reverseBtn.type = "button";
       reverseBtn.className = "reverse-pages-btn";
@@ -178,10 +358,11 @@ function renderFileList() {
         e.stopPropagation();
         e.preventDefault();
         item.reversePages = !item.reversePages;
-        renderFileList(); // 라벨 업데이트
+        renderFileList();
       });
 
-      meta.appendChild(reverseBtn); // 메타 정보 끝에 붙이기
+      meta.appendChild(rangeBtn);
+      meta.appendChild(reverseBtn);
     } else if (item.kind === "blank") {
       li.classList.add("blank");
       icon.classList.add("blank");
@@ -410,56 +591,30 @@ fileListEl.addEventListener("dragleave", (e) => {
 
 mergeBtn.addEventListener("click", async () => {
   if (filesState.length === 0) {
-    alert("PDF 파일을 하나 이상 선택해 주세요.");
+    alert("병합할 PDF 또는 빈 페이지가 없습니다.");
     return;
   }
 
-  setStatus(`PDF 병합 중... (파일 ${filesState.length}개)`, { loading: true });
-
   try {
-    const mergedPdf = await PDFDocument.create();
-    const DEFAULT_PAGE_SIZE = [595.28, 841.89];
+    setStatus("PDF 병합 중입니다...", { loading: true });
 
-    for (const item of filesState) {
-      if (item.kind === "file") {
-        const file = item.file;
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await PDFDocument.load(arrayBuffer);
-
-        const indices = pdf.getPageIndices(); // [0,1,2,...]
-        const copyOrder = item.reversePages
-          ? [...indices].reverse() // ✅ 역순
-          : indices; // ✅ 정상 순서
-
-        const copiedPages = await mergedPdf.copyPages(pdf, copyOrder);
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
-      } else if (item.kind === "blank") {
-        let width = DEFAULT_PAGE_SIZE[0];
-        let height = DEFAULT_PAGE_SIZE[1];
-
-        const pageCount = mergedPdf.getPageCount();
-        if (pageCount > 0) {
-          const lastPage = mergedPdf.getPage(pageCount - 1);
-          const size = lastPage.getSize();
-          width = size.width;
-          height = size.height;
-        }
-        mergedPdf.addPage([width, height]);
-      }
-    }
-    const mergedPdfBytes = await mergedPdf.save();
-    const blob = new Blob([mergedPdfBytes], { type: "application/pdf" });
+    const blob = await buildMergedPdfBlob();
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
 
+    const now = new Date();
+    const stamp = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+    ].join("-");
+
     let baseName = (outputNameInput?.value || "").trim();
     if (!baseName) {
-      baseName = getDefaultOutputName();
+      baseName = `merged-${stamp}`;
     }
-
-    // .pdf 확장자 없으면 자동으로 추가
     if (!baseName.toLowerCase().endsWith(".pdf")) {
       baseName += ".pdf";
     }
@@ -468,10 +623,10 @@ mergeBtn.addEventListener("click", async () => {
     a.click();
     URL.revokeObjectURL(url);
 
-    setStatus(`병합 완료! ${baseName}.pdf 가 내려받기 되었습니다.`);
+    setStatus(`병합 완료! ${baseName} 가 내려받기 되었습니다.`);
   } catch (err) {
     console.error(err);
-    setStatus("에러가 발생했습니다. (콘솔을 확인해 주세요)", { error: true });
+    setStatus("병합 중 오류가 발생했습니다.", { error: true });
   }
 });
 
