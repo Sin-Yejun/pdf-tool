@@ -10,21 +10,38 @@ const dropZone = document.getElementById("dropZone");
 const addBlankBtn = document.getElementById("addBlankBtn");
 const summaryBar = document.getElementById("summaryBar");
 const outputNameInput = document.getElementById("outputNameInput");
+const reverseOrderBtn = document.getElementById("reverseOrderBtn");
 
-// 파일 상태를 저장할 배열 (순서를 여기서 관리)
+// kind: 'file' | 'blank'
+// 파일: { kind: 'file', file: File, pageCount: number|null, reversePages: boolean }
+// 빈페이지: { kind: 'blank' }
 let filesState = [];
 
-// 기본 파일명 placeholder 자동 입력
-(function setDefaultPlaceholder() {
+reverseOrderBtn.addEventListener("click", () => {
+  if (filesState.length === 0) {
+    setStatus("뒤집을 항목이 없습니다.");
+    return;
+  }
+
+  filesState.reverse();
+  renderFileList();
+  setStatus("리스트 순서를 뒤집었습니다.");
+});
+
+function getDefaultOutputName() {
   const now = new Date();
   const stamp = [
     now.getFullYear(),
     String(now.getMonth() + 1).padStart(2, "0"),
     String(now.getDate()).padStart(2, "0"),
   ].join("-");
+  return `merged-${stamp}`;
+}
 
+// 기본 파일명 placeholder 자동 입력
+(function setDefaultPlaceholder() {
   if (outputNameInput) {
-    outputNameInput.placeholder = `merged-${stamp}`;
+    outputNameInput.placeholder = getDefaultOutputName();
   }
 })();
 
@@ -70,7 +87,7 @@ async function addFilesToState(newFiles, { append } = { append: true }) {
   const entries = [];
   for (const file of pdfFiles) {
     const pageCount = await getPdfPageCount(file);
-    entries.push({ kind: "file", file, pageCount });
+    entries.push({ kind: "file", file, pageCount, reversePages: false });
   }
 
   if (append) {
@@ -151,6 +168,20 @@ function renderFileList() {
         item.pageCount != null ? `${item.pageCount} p` : "페이지 수 알 수 없음";
 
       icon.textContent = "PDF";
+      const reverseBtn = document.createElement("button");
+      reverseBtn.type = "button";
+      reverseBtn.className = "reverse-pages-btn";
+      reverseBtn.textContent = item.reversePages ? "↺ 역순 ON" : "↻ 역순 OFF";
+      reverseBtn.title = "이 파일의 페이지 순서를 뒤집어서 병합";
+
+      reverseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        item.reversePages = !item.reversePages;
+        renderFileList(); // 라벨 업데이트
+      });
+
+      meta.appendChild(reverseBtn); // 메타 정보 끝에 붙이기
     } else if (item.kind === "blank") {
       li.classList.add("blank");
       icon.classList.add("blank");
@@ -211,14 +242,6 @@ let dropIndex = null;
 const dropMarker = document.createElement("div");
 dropMarker.className = "drop-marker";
 
-function clearDropHighlights() {
-  document
-    .querySelectorAll(".file-item.drop-before, .file-item.drop-after")
-    .forEach((el) => {
-      el.classList.remove("drop-before", "drop-after");
-    });
-}
-
 function addDragHandlers(li) {
   li.addEventListener("dragstart", (e) => {
     dragSrcIndex = Number(li.dataset.index);
@@ -234,8 +257,7 @@ function addDragHandlers(li) {
 
   li.addEventListener("dragend", () => {
     li.classList.remove("dragging");
-    dragSrcIndex = null;
-    dropIndex = null;
+    dragSrcIndex = dropIndex = null;
     if (dropMarker.parentNode) {
       dropMarker.parentNode.removeChild(dropMarker);
     }
@@ -369,12 +391,6 @@ fileListEl.addEventListener("drop", (e) => {
   }
   filesState.splice(to, 0, moved);
 
-  dragSrcIndex = null;
-  dropIndex = null;
-  if (dropMarker.parentNode) {
-    dropMarker.parentNode.removeChild(dropMarker);
-  }
-
   renderFileList();
 });
 
@@ -409,13 +425,15 @@ mergeBtn.addEventListener("click", async () => {
         const file = item.file;
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await PDFDocument.load(arrayBuffer);
-        const copiedPages = await mergedPdf.copyPages(
-          pdf,
-          pdf.getPageIndices()
-        );
+
+        const indices = pdf.getPageIndices(); // [0,1,2,...]
+        const copyOrder = item.reversePages
+          ? [...indices].reverse() // ✅ 역순
+          : indices; // ✅ 정상 순서
+
+        const copiedPages = await mergedPdf.copyPages(pdf, copyOrder);
         copiedPages.forEach((page) => mergedPdf.addPage(page));
       } else if (item.kind === "blank") {
-        // 현재까지 병합된 마지막 페이지 크기와 동일한 빈 페이지 추가
         let width = DEFAULT_PAGE_SIZE[0];
         let height = DEFAULT_PAGE_SIZE[1];
 
@@ -436,17 +454,9 @@ mergeBtn.addEventListener("click", async () => {
     const a = document.createElement("a");
     a.href = url;
 
-    // ✅ 기본 이름: merged-YYYY-MM-DD
-    const now = new Date();
-    const stamp = [
-      now.getFullYear(),
-      String(now.getMonth() + 1).padStart(2, "0"),
-      String(now.getDate()).padStart(2, "0"),
-    ].join("-");
-
     let baseName = (outputNameInput?.value || "").trim();
     if (!baseName) {
-      baseName = `merged-${stamp}`;
+      baseName = getDefaultOutputName();
     }
 
     // .pdf 확장자 없으면 자동으로 추가
