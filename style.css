@@ -384,13 +384,25 @@ button {
 }
 
 .drop-zone {
-  height: 130px;
   padding: 14px;
   border-radius: 12px;
   border: 1px dashed rgba(255, 255, 255, 0.15);
   background: rgba(9, 11, 18, 0.55);
-  transition: border-color 0.15s ease, background 0.15s ease,
-    box-shadow 0.15s ease, transform 0.12s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+/* 파일이 없을 때: 고정 높이 + 중앙 정렬 */
+.drop-zone.empty {
+  height: 130px;
+}
+
+/* 파일이 있을 때: 내용만큼 자동으로 늘어나게 */
+.drop-zone:not(.empty) {
+  height: auto;
 }
 
 .drop-zone:hover {
@@ -409,14 +421,19 @@ button {
 }
 
 .drop-zone-content {
-  height: 100%;
+  display: none;
+}
+
+/* 파일이 없을 때만 아이콘+문구 보이도록 */
+.drop-zone.empty .drop-zone-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   text-align: center;
-  pointer-events: none;
+  height: 100%;
+  pointer-events: none; /* 드롭 이벤트에 방해 안 되게 */
 }
 
 .drop-zone-icon {

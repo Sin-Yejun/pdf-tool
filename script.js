@@ -105,6 +105,11 @@ function updateFileCount() {
 
 function renderFileList() {
   fileListEl.innerHTML = "";
+  if (filesState.length === 0) {
+    dropZone.classList.add("empty");
+  } else {
+    dropZone.classList.remove("empty");
+  }
   filesState.forEach((item, index) => {
     const li = document.createElement("li");
     li.className = "file-item";
