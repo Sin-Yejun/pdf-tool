@@ -26,13 +26,13 @@
         <div class="section-header">
           <div class="section-title">
             <span class="icon">📁</span>
-            파일 선택
+            <span id="sectionTitleText">파일 선택</span>
           </div>
           <div class="hint">여러 개 선택 가능</div>
         </div>
 
         <div class="file-input-row">
-          <input id="fileInput" type="file" multiple accept="application/pdf" />
+          <input id="fileInput" type="file" multiple accept="application/pdf" style="display: none;" />
         </div>
         <p class="small-text">
           ※ 파일 순서는 아래 리스트에서 <b>드래그해서 변경</b>할 수 있습니다.
@@ -48,10 +48,10 @@
             <div class="drop-zone-content">
               <div class="drop-zone-icon">📄</div>
               <div class="drop-zone-text-wrap">
-                <div class="drop-zone-text">
+                <div id="dropZoneText" class="drop-zone-text">
                   여기로 PDF 파일을 <b>드래그해서 놓기</b>
                 </div>
-                <div class="drop-zone-sub">
+                <div id="dropZoneSub" class="drop-zone-sub">
                   또는 위의 <b>파일 선택</b> 버튼을 사용해도 됩니다.
                 </div>
               </div>

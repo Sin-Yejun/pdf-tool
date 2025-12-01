@@ -14,23 +14,32 @@ const reverseOrderBtn = document.getElementById("reverseOrderBtn");
 const previewBtn = document.getElementById("previewBtn");
 
 // kind: 'file' | 'blank'
-// 파일: { kind: 'file', file: File, pageCount: number|null, reversePages: boolean, pageRange?: { raw: string, indices: number[] } }
-// 빈페이지: { kind: 'blank' }
 let filesState = [];
+let previewUrl = null; // 미리보기용 URL 저장 변수
 
+// ==========================================
+// 1. 미리보기 버튼 수정 (중복 제거 및 메모리 해제)
+// ==========================================
 previewBtn.addEventListener("click", async () => {
   if (filesState.length === 0) {
     alert("미리보기 할 PDF가 없습니다.");
     return;
   }
 
+  // 기존에 열려있던 미리보기 URL이 있다면 메모리 해제
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+  }
+
   try {
     setStatus("미리보기용 PDF를 생성 중입니다...", { loading: true });
 
+    // PDF 생성
     const blob = await buildMergedPdfBlob();
-    const url = URL.createObjectURL(blob);
+    previewUrl = URL.createObjectURL(blob);
 
-    window.open(url, "_blank"); // 브라우저 기본 PDF 뷰어로 새 탭 열기
+    window.open(previewUrl, "_blank"); // 새 탭 열기
 
     setStatus("미리보기가 새 탭에서 열렸습니다.");
   } catch (err) {
@@ -60,14 +69,12 @@ function getDefaultOutputName() {
   return `merged-${stamp}`;
 }
 
-// 기본 파일명 placeholder 자동 입력
 (function setDefaultPlaceholder() {
   if (outputNameInput) {
     outputNameInput.placeholder = getDefaultOutputName();
   }
 })();
 
-// ✅ 요약 정보 업데이트 함수
 function updateSummary() {
   if (!summaryBar) return;
 
@@ -138,19 +145,21 @@ async function buildMergedPdfBlob() {
   return new Blob([mergedPdfBytes], { type: "application/pdf" });
 }
 
-// ✅ PDF 페이지 수 계산
+// ==========================================
+// 2. getPdfPageCount (암호화 예외 처리 강화)
+// ==========================================
 async function getPdfPageCount(file) {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await PDFDocument.load(arrayBuffer);
     return pdf.getPageCount();
   } catch (e) {
-    console.error("페이지 수 읽기 실패:", file.name, e);
+    console.warn("PDF 로드 실패:", file.name, e.message);
+    // 암호화된 파일이거나 로드 실패 시 null 반환
     return null;
   }
 }
 
-// "1-3,5,7-9" -> [0,1,2,4,6,7,8] (0-based)
 function parsePageRangeInput(input, pageCount) {
   if (!input) return null;
 
@@ -166,32 +175,22 @@ function parsePageRangeInput(input, pageCount) {
       const [startStr, endStr] = part.split("-");
       const start = parseInt(startStr, 10);
       const end = parseInt(endStr, 10);
-      if (Number.isNaN(start) || Number.isNaN(end)) {
-        return null;
-      }
+      if (Number.isNaN(start) || Number.isNaN(end)) return null;
       const s = Math.min(start, end);
       const e = Math.max(start, end);
       for (let p = s; p <= e; p++) {
-        const idx = p - 1; // 1-based -> 0-based
-        if (idx >= 0 && idx < pageCount) {
-          indices.add(idx);
-        }
+        const idx = p - 1;
+        if (idx >= 0 && idx < pageCount) indices.add(idx);
       }
     } else {
       const p = parseInt(part, 10);
-      if (Number.isNaN(p)) {
-        return null;
-      }
+      if (Number.isNaN(p)) return null;
       const idx = p - 1;
-      if (idx >= 0 && idx < pageCount) {
-        indices.add(idx);
-      }
+      if (idx >= 0 && idx < pageCount) indices.add(idx);
     }
   }
 
-  if (indices.size === 0) {
-    return null;
-  }
+  if (indices.size === 0) return null;
 
   return {
     raw: cleaned,
@@ -199,8 +198,11 @@ function parsePageRangeInput(input, pageCount) {
   };
 }
 
-// ✅ 파일 배열 추가/교체 공통 함수 (이제 kind: 'file'로 저장)
+// ==========================================
+// 3. addFilesToState (누락된 루프 및 변수 복구)
+// ==========================================
 async function addFilesToState(newFiles, { append } = { append: true }) {
+  // PDF 파일만 필터링
   const pdfFiles = Array.from(newFiles).filter(
     (f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
   );
@@ -208,15 +210,33 @@ async function addFilesToState(newFiles, { append } = { append: true }) {
   if (pdfFiles.length === 0) return;
 
   const entries = [];
+
+  // 파일 하나씩 순회하며 검증
   for (const file of pdfFiles) {
-    const pageCount = await getPdfPageCount(file);
-    entries.push({
-      kind: "file",
-      file,
-      pageCount,
-      reversePages: false,
-      pageRange: null,
-    });
+    try {
+      // 페이지 수 체크 (여기서 암호화/손상 여부 1차 확인)
+      const pageCount = await getPdfPageCount(file);
+
+      // pageCount가 null이면 로드 실패로 간주하고 에러 throw
+      if (pageCount === null) {
+        throw new Error("LoadFailed");
+      }
+
+      entries.push({
+        kind: "file",
+        file,
+        pageCount,
+        reversePages: false,
+        pageRange: null,
+      });
+    } catch (e) {
+      console.error(e);
+      alert(
+        `[${file.name}] 파일을 불러올 수 없습니다.\n비밀번호가 걸려있거나 손상된 파일일 수 있습니다.`
+      );
+      // 이 파일은 건너뛰고 다음 파일 진행
+      continue;
+    }
   }
 
   if (append) {
@@ -229,7 +249,6 @@ async function addFilesToState(newFiles, { append } = { append: true }) {
   setStatus("순서를 드래그해서 조정한 후, [PDF 병합하기]를 누르세요.");
 }
 
-// 파일 크기를 사람이 읽기 좋은 형태로
 function formatSize(bytes) {
   if (!bytes && bytes !== 0) return "";
   const sizes = ["B", "KB", "MB", "GB"];
@@ -251,11 +270,15 @@ function updateFileCount() {
 
 function renderFileList() {
   fileListEl.innerHTML = "";
+  
+  // 1. 리스트가 비었는지 여부에 따라 스타일 클래스 토글
   if (filesState.length === 0) {
     dropZone.classList.add("empty");
   } else {
     dropZone.classList.remove("empty");
   }
+
+  // 2. 리스트 아이템 렌더링
   filesState.forEach((item, index) => {
     const li = document.createElement("li");
     li.className = "file-item";
@@ -297,14 +320,13 @@ function renderFileList() {
 
       icon.textContent = "PDF";
 
-      // ✅ 페이지 범위 버튼
+      // 페이지 범위 버튼
       const rangeBtn = document.createElement("button");
       rangeBtn.type = "button";
       rangeBtn.className = "page-range-btn";
       rangeBtn.textContent = item.pageRange
         ? `범위: ${item.pageRange.raw}`
         : "범위: 전체";
-
       rangeBtn.title = "병합에 포함할 페이지 범위를 설정합니다. 예: 1-3,5,7-9";
 
       rangeBtn.addEventListener("click", (e) => {
@@ -322,14 +344,10 @@ function renderFileList() {
           current
         );
 
-        if (input === null) {
-          // 취소: 아무 것도 변경하지 않음
-          return;
-        }
+        if (input === null) return;
 
         const trimmed = input.trim();
         if (!trimmed) {
-          // 빈 값이면 전체 페이지 사용
           item.pageRange = null;
           renderFileList();
           setStatus("페이지 범위를 초기화했습니다. 전체 페이지가 포함됩니다.");
@@ -347,7 +365,7 @@ function renderFileList() {
         setStatus(`페이지 범위를 "${parsed.raw}"로 설정했습니다.`);
       });
 
-      // ✅ 기존 reverse 버튼
+      // 역순 버튼
       const reverseBtn = document.createElement("button");
       reverseBtn.type = "button";
       reverseBtn.className = "reverse-pages-btn";
@@ -378,23 +396,20 @@ function renderFileList() {
 
     nameWrap.appendChild(name);
     nameWrap.appendChild(sub);
-
     main.appendChild(indexBadge);
     main.appendChild(icon);
     main.appendChild(nameWrap);
 
-    // ✅ 개별 삭제 버튼 생성
+    // 삭제 버튼
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-btn";
     deleteBtn.type = "button";
     deleteBtn.textContent = "✕";
     deleteBtn.title = "이 항목 삭제";
 
-    // 드래그랑 안 섞이게 이벤트 막기
     deleteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
-      // 현재 index 기준으로 삭제
       filesState.splice(index, 1);
       renderFileList();
       setStatus("항목을 삭제했습니다.");
@@ -412,6 +427,32 @@ function renderFileList() {
     fileListEl.appendChild(li);
   });
 
+  // ==========================================
+  // ✨ 3. 워딩 변경 로직 (여기가 핵심입니다!)
+  // ==========================================
+  const dropZoneTextEl = document.getElementById("dropZoneText");
+  const dropZoneSubEl = document.getElementById("dropZoneSub");
+  const sectionTitleText = document.getElementById("sectionTitleText");
+
+  if (filesState.length === 0) {
+    // 📂 파일이 하나도 없을 때
+    if (sectionTitleText) sectionTitleText.textContent = "파일 선택"; // 제목 변경
+    
+    if (dropZoneTextEl)
+      dropZoneTextEl.innerHTML = `여기로 PDF 파일을 <b>드래그해서 놓기</b>`;
+    if (dropZoneSubEl)
+      dropZoneSubEl.innerHTML = `또는 <b>여기 클릭</b>하여 파일 선택`;
+  
+  } else {
+    // ➕ 파일이 하나라도 있을 때
+    if (sectionTitleText) sectionTitleText.textContent = "파일 추가"; // 제목 변경
+    
+    if (dropZoneTextEl)
+      dropZoneTextEl.innerHTML = `여기로 PDF 파일을 <b>드래그해서 추가</b>`;
+    if (dropZoneSubEl)
+      dropZoneSubEl.innerHTML = `또는 <b>여기 클릭</b>하여 파일 추가`;
+  }
+
   updateFileCount();
   updateSummary();
 }
@@ -419,7 +460,6 @@ function renderFileList() {
 // 드래그 앤 드롭 로직
 let dragSrcIndex = null;
 let dropIndex = null;
-
 const dropMarker = document.createElement("div");
 dropMarker.className = "drop-marker";
 
@@ -427,9 +467,7 @@ function addDragHandlers(li) {
   li.addEventListener("dragstart", (e) => {
     dragSrcIndex = Number(li.dataset.index);
     dropIndex = null;
-
     li.classList.add("dragging");
-
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", li.dataset.index);
@@ -439,27 +477,17 @@ function addDragHandlers(li) {
   li.addEventListener("dragend", () => {
     li.classList.remove("dragging");
     dragSrcIndex = dropIndex = null;
-    if (dropMarker.parentNode) {
-      dropMarker.parentNode.removeChild(dropMarker);
-    }
+    if (dropMarker.parentNode) dropMarker.parentNode.removeChild(dropMarker);
   });
 }
 
-// 파일 선택 시 상태 갱신
 fileInput.addEventListener("change", async () => {
-  if (!fileInput.files || fileInput.files.length === 0) {
-    filesState = [];
-    renderFileList();
-    setStatus("PDF 파일을 선택해 주세요.");
-    return;
-  }
-
-  // ✅ 인풋으로 선택하면 기존 리스트 덮어쓰기
-  await addFilesToState(fileInput.files, { append: false });
+  if (!fileInput.files || fileInput.files.length === 0) return;
+  await addFilesToState(fileInput.files, { append: true });
+  fileInput.value = "";
 });
 
 addBlankBtn.addEventListener("click", () => {
-  // 리스트 끝에 '빈 페이지' 아이템 하나 추가
   filesState.push({ kind: "blank" });
   renderFileList();
   setStatus("빈 페이지를 추가했습니다. 드래그해서 원하는 위치로 옮기세요.");
@@ -472,7 +500,6 @@ clearBtn.addEventListener("click", () => {
   setStatus("리스트를 비웠습니다. 새로운 PDF 파일을 선택해 주세요.");
 });
 
-// ✅ 드래그 앤 드롭 업로드
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (e) => {
     e.preventDefault();
@@ -493,23 +520,24 @@ dropZone.addEventListener("drop", async (e) => {
   e.preventDefault();
   e.stopPropagation();
   dropZone.classList.remove("drag-over");
-
   const dt = e.dataTransfer;
   if (!dt || !dt.files || dt.files.length === 0) return;
-
-  // ✅ 드래그&드롭은 기존 리스트에 추가
   await addFilesToState(dt.files, { append: true });
-
-  // 같은 파일 다시 선택하는 상황 대비해서 인풋값 초기화
   fileInput.value = "";
 });
 
-// ✅ dropZone 클릭 시 파일 선택창 열기
-dropZone.addEventListener("click", () => {
+// ✅ dropZone 클릭 시 파일 선택창 열기 (수정됨)
+dropZone.addEventListener("click", (e) => {
+  // 1. 이미 리스트에 있는 파일 아이템(또는 삭제버튼 등)을 클릭했다면 무시
+  // (파일을 드래그하거나 삭제하려고 클릭했을 때 파일 창이 뜨면 안 되니까요)
+  if (e.target.closest(".file-item")) {
+    return;
+  }
+
+  // 2. 빈 공간을 클릭했을 때만 숨겨둔 fileInput을 대신 클릭해줌
   fileInput.click();
 });
 
-// 리스트 전체에 대한 dragover: 마우스 위치 기준으로 dropIndex 계산
 fileListEl.addEventListener("dragover", (e) => {
   e.preventDefault();
   if (dragSrcIndex == null) return;
@@ -517,15 +545,12 @@ fileListEl.addEventListener("dragover", (e) => {
   const children = Array.from(fileListEl.querySelectorAll(".file-item"));
   if (children.length === 0) {
     dropIndex = 0;
-    if (!dropMarker.parentNode) {
-      fileListEl.appendChild(dropMarker);
-    }
+    if (!dropMarker.parentNode) fileListEl.appendChild(dropMarker);
     return;
   }
 
   const y = e.clientY;
-  let newIndex = children.length; // 기본은 맨 끝
-
+  let newIndex = children.length;
   for (let i = 0; i < children.length; i++) {
     const rect = children[i].getBoundingClientRect();
     const mid = rect.top + rect.height / 2;
@@ -535,61 +560,38 @@ fileListEl.addEventListener("dragover", (e) => {
     }
   }
 
-  // 같은 위치라면 DOM 조작 안 함 → 떨림 방지
   if (dropIndex === newIndex && dropMarker.parentNode) return;
-
   dropIndex = newIndex;
-
-  // 마커를 해당 위치로 이동
-  if (dropMarker.parentNode) {
-    dropMarker.parentNode.removeChild(dropMarker);
-  }
-  if (children[newIndex]) {
+  if (dropMarker.parentNode) dropMarker.parentNode.removeChild(dropMarker);
+  if (children[newIndex])
     fileListEl.insertBefore(dropMarker, children[newIndex]);
-  } else {
-    fileListEl.appendChild(dropMarker);
-  }
+  else fileListEl.appendChild(dropMarker);
 });
 
-// 실제 drop 시 순서 재배열
 fileListEl.addEventListener("drop", (e) => {
   e.preventDefault();
   if (dragSrcIndex == null || dropIndex == null) return;
-
   let from = dragSrcIndex;
   let to = dropIndex;
-
-  // 같은 위치면 아무 일도 안 하기
   if (to === from || to === from + 1) {
     dragSrcIndex = null;
     dropIndex = null;
-    if (dropMarker.parentNode) {
-      dropMarker.parentNode.removeChild(dropMarker);
-    }
+    if (dropMarker.parentNode) dropMarker.parentNode.removeChild(dropMarker);
     return;
   }
-
   const moved = filesState[from];
   filesState.splice(from, 1);
-
-  if (to > from) {
-    to -= 1; // 앞에서 하나 빠졌으니 인덱스 보정
-  }
+  if (to > from) to -= 1;
   filesState.splice(to, 0, moved);
-
   renderFileList();
 });
 
-// 리스트 영역 밖으로 나갔을 때 마커 정리
 fileListEl.addEventListener("dragleave", (e) => {
-  // 리스트 전체 영역에서 벗어났을 때만 처리
   const rect = fileListEl.getBoundingClientRect();
   const x = e.clientX;
   const y = e.clientY;
   if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-    if (dropMarker.parentNode) {
-      dropMarker.parentNode.removeChild(dropMarker);
-    }
+    if (dropMarker.parentNode) dropMarker.parentNode.removeChild(dropMarker);
     dropIndex = null;
   }
 });
@@ -617,12 +619,8 @@ mergeBtn.addEventListener("click", async () => {
     ].join("-");
 
     let baseName = (outputNameInput?.value || "").trim();
-    if (!baseName) {
-      baseName = `merged-${stamp}`;
-    }
-    if (!baseName.toLowerCase().endsWith(".pdf")) {
-      baseName += ".pdf";
-    }
+    if (!baseName) baseName = `merged-${stamp}`;
+    if (!baseName.toLowerCase().endsWith(".pdf")) baseName += ".pdf";
 
     a.download = baseName;
     a.click();
@@ -635,10 +633,7 @@ mergeBtn.addEventListener("click", async () => {
   }
 });
 
-// === 테마 토글 ===
 const themeToggleBtn = document.getElementById("themeToggleBtn");
-
-// 저장된 테마 불러오기
 const savedTheme = localStorage.getItem("pdfToolTheme");
 if (savedTheme === "light") {
   document.documentElement.classList.add("light");
@@ -649,20 +644,27 @@ if (savedTheme === "light") {
 
 themeToggleBtn.addEventListener("click", () => {
   const html = document.documentElement;
-
   if (html.classList.contains("light")) {
-    // 라이트 → 다크
     html.classList.remove("light");
     themeToggleBtn.textContent = "🌙 다크 모드";
     localStorage.setItem("pdfToolTheme", "dark");
   } else {
-    // 다크 → 라이트
     html.classList.add("light");
     themeToggleBtn.textContent = "☀️ 라이트 모드";
     localStorage.setItem("pdfToolTheme", "light");
   }
 });
 
-// 초기 상태
-setStatus("PDF 파일을 선택해 주세요.");
+// ✅ 섹션 제목("📂 파일 선택/추가")을 클릭해도 파일 창이 열리도록 설정
+const sectionTitleEl = document.querySelector(".section-title");
+if (sectionTitleEl) {
+  sectionTitleEl.addEventListener("click", () => {
+    // 파일이 하나도 없거나, 클릭이 드래그 중이 아닐 때만 실행
+    if (filesState.length === 0 || !document.querySelector('.dragging')) {
+      fileInput.click();
+    }
+  });
+}
 
+setStatus("PDF 파일을 선택해 주세요.");
+renderFileList();

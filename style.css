@@ -161,6 +161,14 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  /* 제목도 클릭할 수 있게 커서 변경 */
+  cursor: pointer; 
+  transition: color 0.12s ease;
+}
+
+.section-title:hover {
+  /* 제목에 마우스 올리면 색상 변경 */
+  color: var(--accent); 
 }
 
 .section-title span.icon {
@@ -470,6 +478,7 @@ button {
   }
 }
 
+/* --- 드래그 앤 드롭 박스 --- */
 .drop-zone {
   padding: 14px;
   border-radius: 12px;
@@ -477,6 +486,8 @@ button {
   background: var(--panel-bg);
   transition: border-color 0.15s ease, background 0.15s ease,
     box-shadow 0.15s ease, transform 0.12s ease;
+  /* 박스 전체에 손가락 커서 표시 (핵심) */
+  cursor: pointer; 
 }
 
 /* 파일이 없을 때: 고정 높이 + 중앙 정렬 */
@@ -489,10 +500,12 @@ button {
   height: auto;
 }
 
+/* 마우스 올렸을 때 효과 강화 */
 .drop-zone:hover {
-  border-color: rgba(79, 140, 255, 0.7);
-  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.35),
-    0 0 22px rgba(79, 140, 255, 0.25);
+  border-color: var(--accent); /* 테두리 색상을 강조색으로 */
+  background: var(--muted-bg); /* 배경 살짝 밝게 */
+  box-shadow: 0 0 0 1px var(--accent-soft),
+    0 0 22px rgba(79, 140, 255, 0.15);
   transform: translateY(-1px);
 }
 
@@ -542,6 +555,14 @@ button {
 .drop-zone-text {
   font-size: 12px;
   color: var(--text-main);
+}
+
+.drop-zone-text b,
+.drop-zone-sub b {
+  font-weight: 600;
+  color: var(--accent); /* 강조색 적용 */
+  text-decoration: underline; /* 밑줄 추가 */
+  text-underline-offset: 3px;
 }
 
 .drop-zone-text b {
