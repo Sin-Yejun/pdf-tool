@@ -504,6 +504,11 @@ dropZone.addEventListener("drop", async (e) => {
   fileInput.value = "";
 });
 
+// ✅ dropZone 클릭 시 파일 선택창 열기
+dropZone.addEventListener("click", () => {
+  fileInput.click();
+});
+
 // 리스트 전체에 대한 dragover: 마우스 위치 기준으로 dropIndex 계산
 fileListEl.addEventListener("dragover", (e) => {
   e.preventDefault();
