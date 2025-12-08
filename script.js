@@ -198,6 +198,121 @@ function parsePageRangeInput(input, pageCount) {
   };
 }
 
+function formatRawFromIndices(indices) {
+  return indices.map((i) => i + 1).join(",");
+}
+
+function indicesToRangeString(indices) {
+  if (!indices || indices.length === 0) return "";
+  const sorted = [...indices].sort((a, b) => a - b);
+  const ranges = [];
+  let start = sorted[0];
+  let prev = sorted[0];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const cur = sorted[i];
+    if (cur === prev + 1) {
+      prev = cur;
+      continue;
+    }
+    ranges.push([start, prev]);
+    start = prev = cur;
+  }
+  ranges.push([start, prev]);
+
+  return ranges
+    .map(([s, e]) => (s === e ? `${s + 1}` : `${s + 1}-${e + 1}`))
+    .join(",");
+}
+
+function buildPageRangeFromIndices(indices) {
+  const sorted = [...indices].sort((a, b) => a - b);
+  return {
+    raw: indicesToRangeString(sorted),
+    indices: sorted,
+  };
+}
+
+function getEffectivePageSequence(item) {
+  const totalIndices = Array.from({ length: item.pageCount || 0 }, (_, i) => i);
+  let seq = item.pageRange?.indices ? item.pageRange.indices : totalIndices;
+  if (item.reversePages) {
+    seq = [...seq].reverse();
+  }
+  return seq;
+}
+
+function splitFileItem(index) {
+  const target = filesState[index];
+  if (!target || target.kind !== "file") return;
+
+  if (target.pageCount == null || target.pageCount < 2) {
+    alert("2쪽 미만 PDF는 분리할 수 없습니다.");
+    return;
+  }
+
+  const effectivePages = getEffectivePageSequence(target);
+  if (effectivePages.length < 2) {
+    alert("선택된 페이지가 2쪽 미만이라 분리할 수 없습니다.");
+    return;
+  }
+
+  const defaultSplit = Math.floor(effectivePages.length / 2);
+  const input = window.prompt(
+    `몇 페이지 이후로 나눌까요? (1~${effectivePages.length - 1})\n현재 적용된 순서/범위 기준입니다.`,
+    String(defaultSplit)
+  );
+  if (input === null) return;
+
+  const splitAfter = parseInt(input.trim(), 10);
+  if (
+    Number.isNaN(splitAfter) ||
+    splitAfter < 1 ||
+    splitAfter >= effectivePages.length
+  ) {
+    alert("입력값이 올바르지 않습니다. 1과 마지막 페이지 사이 숫자를 입력해주세요.");
+    return;
+  }
+
+  const firstIndices = effectivePages.slice(0, splitAfter);
+  const secondIndices = effectivePages.slice(splitAfter);
+
+  const base = {
+    kind: "file",
+    file: target.file,
+    pageCount: target.pageCount,
+    reversePages: false,
+  };
+
+  const first = {
+    ...base,
+    pageRange: buildPageRangeFromIndices(firstIndices),
+  };
+  const second = {
+    ...base,
+    pageRange: buildPageRangeFromIndices(secondIndices),
+  };
+
+  filesState.splice(index, 1, first, second);
+  renderFileList();
+  setStatus(
+    `"${target.file.name}"을(를) ${splitAfter}쪽 기준으로 두 개로 분리했습니다.`
+  );
+}
+
+function getDisplayPageCount(item) {
+  if (item.pageRange?.indices) return item.pageRange.indices.length;
+  return item.pageCount || 0;
+}
+
+function getDisplaySize(item) {
+  if (item.pageRange?.indices && item.pageCount) {
+    const ratio = item.pageRange.indices.length / item.pageCount;
+    return Math.max(1, Math.round(item.file.size * ratio));
+  }
+  return item.file.size;
+}
+
 // ==========================================
 // 3. addFilesToState (누락된 루프 및 변수 복구)
 // ==========================================
@@ -314,9 +429,11 @@ function renderFileList() {
       const file = item.file;
 
       name.textContent = file.name;
-      sizeSpan.textContent = formatSize(file.size);
+      const displaySize = getDisplaySize(item);
+      const displayPages = getDisplayPageCount(item);
+      sizeSpan.textContent = formatSize(displaySize);
       pagesHint.textContent =
-        item.pageCount != null ? `${item.pageCount} p` : "페이지 수 알 수 없음";
+        displayPages != null ? `${displayPages} p` : "페이지 정보를 불러오는 중";
 
       icon.textContent = "PDF";
 
@@ -379,8 +496,21 @@ function renderFileList() {
         renderFileList();
       });
 
+      const splitBtn = document.createElement("button");
+      splitBtn.type = "button";
+      splitBtn.className = "split-btn";
+      splitBtn.textContent = "분리";
+      splitBtn.title =
+        "현재 적용된 순서/범위를 기준으로 이 파일을 두 개로 나눕니다.";
+      splitBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        splitFileItem(index);
+      });
+
       meta.appendChild(rangeBtn);
       meta.appendChild(reverseBtn);
+      meta.appendChild(splitBtn);
     } else if (item.kind === "blank") {
       li.classList.add("blank");
       icon.classList.add("blank");
