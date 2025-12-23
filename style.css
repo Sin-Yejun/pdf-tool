@@ -78,7 +78,7 @@ body {
   background-attachment: fixed;
   color: var(--text-main);
   margin: 0;
-  padding: 24px;
+  padding: 32px;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -87,13 +87,13 @@ body {
 
 .app {
   width: 100%;
-  max-width: 720px;
+  max-width: 860px;
   background: var(--app-bg);
-  border-radius: 18px;
+  border-radius: 20px;
   border: 1px solid var(--border);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7),
     0 0 0 1px rgba(255, 255, 255, 0.02);
-  padding: 24px 22px 20px;
+  padding: 30px 28px 26px;
   backdrop-filter: blur(18px);
 }
 
@@ -106,18 +106,18 @@ body {
 }
 
 .title-block h1 {
-  font-size: 20px;
-  margin: 0 0 4px;
+  font-size: 26px;
+  margin: 0 0 6px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .pill {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid var(--accent-soft);
   background: var(--pill-bg);
@@ -126,13 +126,13 @@ body {
 
 .title-block p {
   margin: 0;
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text-sub);
 }
 
 .badge-me {
-  font-size: 11px;
-  padding: 4px 10px;
+  font-size: 13px;
+  padding: 5px 12px;
   border-radius: 999px;
   background: var(--badge-bg);
   color: var(--accent);
@@ -142,25 +142,25 @@ body {
 
 .section {
   background: var(--panel-bg);
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid var(--border);
-  padding: 14px 16px 12px;
-  margin-bottom: 12px;
+  padding: 18px 20px 16px;
+  margin-bottom: 16px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .section-title {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   /* 제목도 클릭할 수 있게 커서 변경 */
   cursor: pointer; 
   transition: color 0.12s ease;
@@ -172,36 +172,36 @@ body {
 }
 
 .section-title span.icon {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .hint {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-sub);
 }
 
 .file-input-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 input[type="file"] {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-sub);
 }
 
 .small-text {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-sub);
   margin: 0;
 }
 
 .list-container {
-  margin-top: 6px;
-  border-radius: 10px;
+  margin-top: 8px;
+  border-radius: 12px;
   border: 1px dashed var(--border);
   background: var(--panel-bg);
 }
@@ -210,8 +210,8 @@ input[type="file"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px 6px;
-  font-size: 11px;
+  padding: 10px 14px 8px;
+  font-size: 13px;
   color: var(--text-sub);
   border-bottom: 1px solid var(--border);
 }
@@ -232,8 +232,8 @@ ul#fileList {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px;
-  font-size: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
   cursor: grab;
   user-select: none;
   border-bottom: 1px solid var(--border);
@@ -259,38 +259,38 @@ ul#fileList {
 .file-main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   min-width: 0;
 }
 
 .file-index {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-sub);
   flex-shrink: 0;
 }
 
 .file-icon {
-  width: 18px;
-  height: 22px;
-  border-radius: 4px;
+  width: 24px;
+  height: 28px;
+  border-radius: 5px;
   background: linear-gradient(135deg, #ff9a5c, #ff5f6d);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 12px;
   color: #fff;
   flex-shrink: 0;
 }
 
 .file-name {
-  font-size: 12px;
+  font-size: 15px;
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
@@ -299,29 +299,29 @@ ul#fileList {
 }
 
 .file-sub {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-sub);
-  margin-left: 4px;
+  margin-left: 6px;
 }
 
 .file-meta {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-sub);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .dot-sep {
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.3);
 }
 
 .drag-hint {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: rgba(255, 255, 255, 0.35);
@@ -366,18 +366,18 @@ button {
 }
 
 .btn-primary {
-  padding: 8px 18px;
+  padding: 10px 24px;
   border-radius: 999px;
   border: none;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   background: linear-gradient(135deg, #4f8cff, #7b5cff);
   color: #fff;
   box-shadow: var(--btn-shadow);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.12s ease;
   white-space: nowrap;
   flex-shrink: 0;
@@ -402,8 +402,8 @@ button {
 }
 
 #fileCountText {
-  font-size: 11px;
-  padding: 4px 10px;
+  font-size: 13px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: var(--chip-bg);
   color: var(--text-sub);
@@ -411,16 +411,16 @@ button {
 }
 
 .btn-ghost {
-  padding: 5px 10px;
+  padding: 7px 14px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--muted-bg);
   color: var(--text-sub);
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
@@ -431,13 +431,13 @@ button {
 }
 
 .status {
-  margin-top: 12px;
-  font-size: 11px;
-  min-height: 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  min-height: 20px;
   color: var(--text-sub);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   white-space: pre-line;
 }
 
@@ -480,8 +480,8 @@ button {
 
 /* --- 드래그 앤 드롭 박스 --- */
 .drop-zone {
-  padding: 14px;
-  border-radius: 12px;
+  padding: 20px;
+  border-radius: 14px;
   border: 1px dashed var(--border);
   background: var(--panel-bg);
   transition: border-color 0.15s ease, background 0.15s ease,
@@ -492,7 +492,7 @@ button {
 
 /* 파일이 없을 때: 고정 높이 + 중앙 정렬 */
 .drop-zone.empty {
-  height: 130px;
+  height: 160px;
 }
 
 /* 파일이 있을 때: 내용만큼 자동으로 늘어나게 */
@@ -534,10 +534,10 @@ button {
 }
 
 .drop-zone-icon {
-  font-size: 26px;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -553,7 +553,7 @@ button {
 }
 
 .drop-zone-text {
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text-main);
 }
 
@@ -571,7 +571,7 @@ button {
 }
 
 .drop-zone-sub {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--text-sub);
 }
 
@@ -617,14 +617,14 @@ button {
   border: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
+  font-size: 16px;
   cursor: pointer;
   padding: 0 2px;
-  margin-left: 4px;
+  margin-left: 6px;
   line-height: 1;
   border-radius: 999px;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -641,30 +641,30 @@ button {
 }
 
 .output-row {
-  margin-top: 12px;
-  margin-bottom: 4px;
+  margin-top: 16px;
+  margin-bottom: 6px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 10px;
+  gap: 8px 12px;
   align-items: center;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-sub);
 }
 
 .output-label {
-  font-size: 11px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .output-input {
-  flex: 1 1 160px;
-  min-width: 140px;
-  padding: 4px 8px;
+  flex: 1 1 200px;
+  min-width: 160px;
+  padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--input-bg);
   color: var(--text-main);
-  font-size: 12px;
+  font-size: 14px;
   outline: none;
 }
 
@@ -675,16 +675,16 @@ button {
 
 .output-hint {
   flex-basis: 100%;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-sub);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .summary-bar {
-  margin-top: 12px;
-  margin-bottom: 4px;
-  font-size: 11px;
-  padding: 6px 10px;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  padding: 8px 14px;
   border-radius: 999px;
   background: var(--panel-bg);
   border: 1px solid var(--border);
@@ -702,11 +702,11 @@ button {
   border: none;
   background: var(--muted-bg);
   color: var(--text-sub);
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 12px;
+  padding: 4px 8px;
   border-radius: 999px;
   cursor: pointer;
-  margin-left: 6px;
+  margin-left: 8px;
   white-space: nowrap;
   transition: background 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
 }
@@ -721,11 +721,11 @@ button {
   border: none;
   background: var(--muted-bg);
   color: var(--text-sub);
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 12px;
+  padding: 4px 8px;
   border-radius: 999px;
   cursor: pointer;
-  margin-left: 6px;
+  margin-left: 8px;
   white-space: nowrap;
   transition: background 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
 }
@@ -740,11 +740,11 @@ button {
   border: none;
   background: var(--chip-bg);
   color: var(--accent);
-  font-size: 10px;
-  padding: 2px 8px;
+  font-size: 12px;
+  padding: 4px 10px;
   border-radius: 999px;
   cursor: pointer;
-  margin-left: 6px;
+  margin-left: 8px;
   white-space: nowrap;
   box-shadow: 0 0 0 1px var(--accent-soft);
   transition: background 0.12s ease, color 0.12s ease, box-shadow 0.12s ease,
